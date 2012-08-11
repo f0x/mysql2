@@ -16,6 +16,7 @@ dirs = ENV['PATH'].split(File::PATH_SEPARATOR) + %w[
   /opt/local
   /opt/local/mysql
   /opt/local/lib/mysql5
+  /opt/csw/include
   /usr
   /usr/mysql
   /usr/local
@@ -31,11 +32,14 @@ if RUBY_PLATFORM =~ /mswin|mingw/
   exit 1 unless have_library("libmysql")
 elsif mc = (with_config('mysql-config') || Dir[GLOB].first) then
   mc = Dir[GLOB].first if mc == true
-  cflags = `#{mc} --cflags`.chomp
+#  cflags = `#{mc} --cflags`.chomp
+  cflags = "-I/usr/mysql/5.1/include/mysql -m64".chomp
   exit 1 if $? != 0
-  libs = `#{mc} --libs_r`.chomp
-  if libs.empty?
-    libs = `#{mc} --libs`.chomp
+# libs = `#{mc} --libs_r`.chomp
+  libs = "-lrt -L/usr/mysql/5.1/lib/amd64/mysql -R/usr/mysql/5.1/lib/amd64/mysql -lmysqlclient -lz -lsocket -lnsl -lm".chomp
+  if libs.empty?  
+    #libs = `#{mc} --libs`.chomp
+    libs = "-lrt -L/usr/mysql/5.1/lib/amd64/mysql -R/usr/mysql/5.1/lib/amd64/mysql -lmysqlclient_r -lz -lpthread -lthread -lsocket -lnsl -lm -lpthread -lthread".chomp
   end
   exit 1 if $? != 0
   $CPPFLAGS += ' ' + cflags
@@ -48,6 +52,8 @@ else
     have_library(libs.shift)
   end
 end
+
+find_header('mysql.h', '/usr/mysql/5.1/include/mysql/')
 
 if have_header('mysql.h') then
   prefix = nil
