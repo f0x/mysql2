@@ -33,13 +33,25 @@ if RUBY_PLATFORM =~ /mswin|mingw/
 elsif mc = (with_config('mysql-config') || Dir[GLOB].first) then
   mc = Dir[GLOB].first if mc == true
 #  cflags = `#{mc} --cflags`.chomp
-  cflags = "-I/usr/mysql/5.1/include/mysql -m64".chomp
+  if RUBY_PLATFORM =~ /i386-solaris2.11/
+	cflags = "-I/usr/mysql/5.1/include/mysql -m64".chomp
+  else
+	cflags = `#{mc} --cflags`.chomp
+  end
   exit 1 if $? != 0
 # libs = `#{mc} --libs_r`.chomp
-  libs = "-lrt -L/usr/mysql/5.1/lib/amd64/mysql -R/usr/mysql/5.1/lib/amd64/mysql -lmysqlclient -lz -lsocket -lnsl -lm".chomp
+  if RUBY_PLATFORM =~ /i386-solaris2.11/
+	  libs = "-lrt -L/usr/mysql/5.1/lib/amd64/mysql -R/usr/mysql/5.1/lib/amd64/mysql -lmysqlclient -lz -lsocket -lnsl -lm".chomp
+  else 
+	  libs = `#{mc} --libs_r`.chomp
+  end
   if libs.empty?  
     #libs = `#{mc} --libs`.chomp
-    libs = "-lrt -L/usr/mysql/5.1/lib/amd64/mysql -R/usr/mysql/5.1/lib/amd64/mysql -lmysqlclient_r -lz -lpthread -lthread -lsocket -lnsl -lm -lpthread -lthread".chomp
+    if RUBY_PLATFORM =~ /i386-solaris2.11/
+	    libs = "-lrt -L/usr/mysql/5.1/lib/amd64/mysql -R/usr/mysql/5.1/lib/amd64/mysql -lmysqlclient_r -lz -lpthread -lthread -lsocket -lnsl -lm -lpthread -lthread".chomp
+    else
+	libs = `#{mc} --libs`.chomp
+    end
   end
   exit 1 if $? != 0
   $CPPFLAGS += ' ' + cflags
